@@ -1,17 +1,18 @@
 package server
 
 import (
+	"encoding/json"
 	"github.com/lologarithm/gopong/game"
 	"log"
 )
 
 type Hub struct {
-	connections     map[string]*Connection // Maps connection address to connection object.
 	Incoming        chan NetMessage        // Inbound messages from the connections.
 	Outgoing        chan NetMessage        // Outgoing messages to the connections.
 	NewConnection   chan *Connection       // Register requests from the connections.
 	CloseConnection chan *Connection       // Unregister requests from connections.
-	gameManager     *game.Manager
+	connections     map[string]*Connection // Maps connection address to connection object.
+	gameManager     *game.Manager          // Game manager to send messages to
 }
 
 type NetMessage struct {
@@ -22,6 +23,7 @@ type NetMessage struct {
 //var g = game.Manager{}
 
 func (h *Hub) Run() {
+	go h.gameManager.Run()
 	go h.broadcastMessages()
 
 	for {
@@ -35,7 +37,13 @@ func (h *Hub) Run() {
 				close(c.send)
 			}
 		case m := <-h.Incoming:
-			log.Print(m)
+			log.Printf("Message: %s", string(m.Data))
+			var msgMap map[string]string
+			err := json.Unmarshal(m.Data, &msgMap)
+			if err != nil {
+				log.Printf("Failed to parse message")
+			}
+			h.gameManager.Incoming <- msgMap
 		}
 	}
 }
@@ -60,5 +68,4 @@ func NewHub() *Hub {
 		connections:     make(map[string]*Connection),
 		gameManager:     game.NewManager(),
 	}
-
 }
