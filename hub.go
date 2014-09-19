@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"github.com/brentechols34/masterblaster/game"
 )
 
 type Hub struct {
@@ -39,9 +38,7 @@ func (h *Hub) run() {
 		select {
 		case c := <-h.register:
 			h.connections[c] = true
-			processMessage(UserMessage {
-
-				})
+			processMessage(UserMessage {})
 		case c := <-h.unregister:
 			if _, ok := h.connections[c]; ok {
 				delete(h.connections, c)
