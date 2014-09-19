@@ -28,7 +28,7 @@ func (m *Manager) Run() {
 		select {
 		case <-time.After(timeout):
 			lastUpdate = time.Now()
-			//m.Tick(true)
+			m.Tick()
 			timeout = lastUpdate.Add(time.Millisecond * SimUpdateSeconds).Sub(time.Now())
 		case msg := <-m.Incoming:
 			m.handleMessage(msg)
