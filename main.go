@@ -7,12 +7,13 @@ import (
 	"net/http"
 	"path/filepath"
 	"text/template"
+
+	"github.com/lologarithm/gopong/server"
 )
 
 var (
 	addr      = flag.String("addr", ":8080", "http service address")
 	assets    = flag.String("assets", defaultAssetPath(), "path to assets")
-	game      = Manager
 	homeTempl *template.Template
 )
 
@@ -34,12 +35,14 @@ func main() {
 	// Setup our template html
 	homeTempl = template.Must(template.ParseFiles(filepath.Join(*assets, "test.html")))
 
+	var h = server.NewHub()
+
 	// Setup our hub's routine
-	go h.run()
+	go h.Run()
 
 	// Register handlers
 	http.HandleFunc("/", homeHandler)
-	http.HandleFunc("/ws", wsHandler)
+	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) { server.HandleWebSocket(w, r, h) })
 
 	// Log any fatal serve errors
 	if err := http.ListenAndServe(*addr, nil); err != nil {
