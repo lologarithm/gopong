@@ -2,15 +2,9 @@
 define([
 'jquery',
 'react',
-'history',
-'/js/components/views/summoner/master.js',
-'/js/components/views/accountView.js',
-'/js/components/views/aboutView.js',
-'/js/components/views/tournament/tournamentView.js',
-'/js/components/controls/controls/tabManager/verticalTabManager.js',
-'/js/components/controls/loginHeader.js'], 
+'history'], 
 
-function ($, React, _h, SummonerView, AccountView, AboutView, TournamentView, TabManager, LoginHeader) {
+function ($, React, _h) {
 	var IndexView = React.createClass({
 		ACTIVE_VIEW: {
 			ROOT: '/'

@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"go/build"
-	"log"
 	"net/http"
 	"path/filepath"
 	"text/template"
@@ -33,7 +32,7 @@ func main() {
 	flag.Parse()
 
 	// Setup our template html
-	homeTempl = template.Must(template.ParseFiles(filepath.Join(*assets, "client/build/test.html")))
+	homeTempl = template.Must(template.ParseFiles(filepath.Join(*assets, "index.html")))
 
 	var h = server.NewHub()
 
@@ -41,11 +40,6 @@ func main() {
 	go h.Run()
 
 	// Register handlers
-	http.HandleFunc("/", homeHandler)
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) { server.HandleWebSocket(w, r, h) })
-
-	// Log any fatal serve errors
-	if err := http.ListenAndServe(*addr, nil); err != nil {
-		log.Fatal("ListenAndServe:", err)
-	}
+	http.ListenAndServe(*addr, http.FileServer(http.Dir("client/build/")))
 }
