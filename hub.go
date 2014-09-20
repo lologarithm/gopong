@@ -22,6 +22,16 @@ type Hub struct {
 	unregister chan *connection
 }
 
+type Message struct {
+	Id   int32
+	Data string
+}
+
+type UserMessage struct {
+	Id      string
+	Message []byte
+}
+
 var h = Hub{
 	broadcast:   make(chan UserMessage),
 	outgoing:   make(chan UserMessage),
