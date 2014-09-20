@@ -21,3 +21,8 @@ _testmain.go
 
 *.exe
 *.test
+gopong
+
+client/bower_components/
+client/node_modules/
+client/build/

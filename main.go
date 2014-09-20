@@ -33,7 +33,7 @@ func main() {
 	flag.Parse()
 
 	// Setup our template html
-	homeTempl = template.Must(template.ParseFiles(filepath.Join(*assets, "test.html")))
+	homeTempl = template.Must(template.ParseFiles(filepath.Join(*assets, "client/build/test.html")))
 
 	var h = server.NewHub()
 
