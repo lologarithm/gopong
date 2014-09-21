@@ -2,12 +2,12 @@ package main
 
 import (
 	"flag"
+	"github.com/lologarithm/gopong/server"
 	"go/build"
+	//	"log"
 	"net/http"
 	"path/filepath"
 	"text/template"
-
-	"github.com/lologarithm/gopong/server"
 )
 
 var (
@@ -41,5 +41,6 @@ func main() {
 
 	// Register handlers
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) { server.HandleWebSocket(w, r, h) })
-	http.ListenAndServe(*addr, http.FileServer(http.Dir("client/build/")))
+	http.ListenAndServe(*addr, http.DefaultServeMux)
+	//http.ListenAndServe(*addr, http.FileServer(http.Dir("client/build/")))
 }

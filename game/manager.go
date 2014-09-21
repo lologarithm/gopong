@@ -1,9 +1,9 @@
 package game
 
 import (
+	"encoding/json"
 	"log"
 	"math"
-	"strconv"
 	"time"
 )
 
@@ -14,7 +14,8 @@ const (
 )
 
 type Manager struct {
-	Incoming chan map[string]string
+	Incoming chan Message
+	Outgoing chan Message
 	Players  map[int]*Thing // For now its just left and right players
 	Balls    []*Thing
 }
@@ -35,27 +36,28 @@ func (m *Manager) Run() {
 	}
 }
 
-func (m *Manager) handleMessage(msg map[string]string) {
-	switch msg["type"] {
+func (m *Manager) handleMessage(msg Message) {
+	log.Printf("Got message: %s", msg.Type)
+	switch msg.Type {
 	case "newPlayer":
-		//id, err := strconv.ParseInt(msg["id"], 10, 32)
+		log.Printf("Adding player.")
 		id := len(m.Players)
 		pos := Vector2{X: -100, Y: 0}
 		if id == 1 {
 			pos = Vector2{X: 100, Y: 0}
+			// Make the balls start moving!
+			m.Balls[0].Velocity.X = 1.0
+			log.Printf("STARTING GAME")
 		}
 		m.Players[id] = &Thing{Id: id, Position: pos}
 	case "playerUpdate":
-		id, err := strconv.Atoi(msg["id"])
+		log.Printf("Player updated direction!")
+		var pu PlayerUpdate
+		err := json.Unmarshal(msg.Data, &pu)
 		if err != nil {
-			log.Printf("Failed to parse player id for update!")
+			log.Printf("Failed to parse player update!")
 		}
-
-		moveDirection, err := strconv.ParseFloat(msg["moveDir"], 64)
-		if err != nil {
-			log.Printf("Failed to parse player position for update!")
-		}
-		m.Players[id].Velocity.Y = 25 * moveDirection
+		m.Players[pu.Id].Velocity.Y = 1.0 * pu.Direction
 	}
 }
 
@@ -70,13 +72,42 @@ func (m *Manager) Tick() {
 				break
 			}
 		}
+		if b.Position.X > 100 {
+			log.Printf("Player 1 has won!")
+			b.Position.X = 0
+		} else if b.Position.X < -100 {
+			log.Printf("Player 2 has won!")
+			b.Position.X = 0
+		}
+	}
+	for _, p := range m.Players {
+		p.UpdatePosition()
+		for _, other := range m.Balls {
+			dist = math.Pow(float64(other.Position.X-p.Position.X), 2) + math.Pow(float64(other.Position.Y-p.Position.Y), 2)
+			if dist <= math.Pow(float64(other.Size+p.Size), 2) {
+				log.Printf("COLLISION!")
+				break
+			}
+		}
 
 	}
 }
 
 func NewManager() *Manager {
 	return &Manager{
-		Players: make(map[int]*Thing, 0),
-		Balls:   []*Thing{&Thing{Id: 0, Size: 10}},
+		Players:  make(map[int]*Thing, 0),
+		Balls:    []*Thing{&Thing{Id: 0, Size: 10}},
+		Incoming: make(chan Message, 10),
 	}
+}
+
+type Message struct {
+	Id   string
+	Type string
+	Data []byte
+}
+
+type PlayerUpdate struct {
+	Id        int
+	Direction float64
 }

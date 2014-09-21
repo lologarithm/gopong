@@ -3,6 +3,8 @@ package server
 import (
 	"encoding/json"
 	"github.com/gorilla/websocket"
+	"github.com/lologarithm/gopong/game"
+	"log"
 	"net/http"
 )
 
@@ -11,7 +13,7 @@ type Connection struct {
 	ws *websocket.Conn
 
 	// Buffered channel of outbound messages.
-	send chan NetMessage
+	send chan game.Message
 
 	Addr string
 
@@ -19,12 +21,15 @@ type Connection struct {
 }
 
 func (c *Connection) ReadMessagesFromNet() {
+	myMessage := &game.Message{}
 	for {
 		_, message, err := c.ws.ReadMessage()
 		if err != nil {
 			break
 		}
-		c.myHub.Incoming <- NetMessage{Data: message, Id: c.ws.RemoteAddr().String()}
+
+		json.Unmarshal(message, myMessage)
+		c.myHub.Incoming <- *myMessage
 	}
 	c.ws.Close()
 }
@@ -45,10 +50,11 @@ var upgrader = &websocket.Upgrader{ReadBufferSize: 1024, WriteBufferSize: 1024}
 
 func HandleWebSocket(w http.ResponseWriter, r *http.Request, hub *Hub) {
 	ws, err := upgrader.Upgrade(w, r, nil)
+	log.Printf("got new connection")
 	if err != nil {
 		return
 	}
-	c := &Connection{send: make(chan NetMessage, 256), ws: ws, myHub: hub}
+	c := &Connection{send: make(chan game.Message, 256), ws: ws, myHub: hub}
 	hub.NewConnection <- c
 	defer func() { hub.CloseConnection <- c }()
 	go c.WriteMessagesToNet()

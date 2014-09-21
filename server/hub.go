@@ -1,23 +1,16 @@
 package server
 
 import (
-	"encoding/json"
 	"github.com/lologarithm/gopong/game"
-	"log"
 )
 
 type Hub struct {
-	Incoming        chan NetMessage        // Inbound messages from the connections.
-	Outgoing        chan NetMessage        // Outgoing messages to the connections.
+	Incoming        chan game.Message      // Inbound messages from the connections.
+	Outgoing        chan game.Message      // Outgoing messages to the connections.
 	NewConnection   chan *Connection       // Register requests from the connections.
 	CloseConnection chan *Connection       // Unregister requests from connections.
 	connections     map[string]*Connection // Maps connection address to connection object.
 	gameManager     *game.Manager          // Game manager to send messages to
-}
-
-type NetMessage struct {
-	Id   string
-	Data []byte
 }
 
 //var g = game.Manager{}
@@ -36,14 +29,6 @@ func (h *Hub) Run() {
 				delete(h.connections, c.Addr)
 				close(c.send)
 			}
-		case m := <-h.Incoming:
-			log.Printf("Message: %s", string(m.Data))
-			var msgMap map[string]string
-			err := json.Unmarshal(m.Data, &msgMap)
-			if err != nil {
-				log.Printf("Failed to parse message")
-			}
-			h.gameManager.Incoming <- msgMap
 		}
 	}
 }
@@ -60,12 +45,16 @@ func (h *Hub) broadcastMessages() {
 }
 
 func NewHub() *Hub {
-	return &Hub{
-		Incoming:        make(chan NetMessage),
-		Outgoing:        make(chan NetMessage),
+	h := &Hub{
+		Incoming:        make(chan game.Message),
+		Outgoing:        make(chan game.Message),
 		NewConnection:   make(chan *Connection),
 		CloseConnection: make(chan *Connection),
 		connections:     make(map[string]*Connection),
 		gameManager:     game.NewManager(),
 	}
+	// Now link together the channels so the game gets all the messages
+	h.gameManager.Outgoing = h.Outgoing
+	h.gameManager.Incoming = h.Incoming
+	return h
 }
