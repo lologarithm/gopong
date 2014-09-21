@@ -49,10 +49,11 @@ func main() {
 }
 
 func defaultFileServe(w http.ResponseWriter, r *http.Request) {
+	file := filepath.Join("./	client/build", r.URL.Path)
 	if r.URL.Path == "/" {
-		r.URL.Path = "/index.html"
+		file = "./index.html"
 	}
-	data, err := ioutil.ReadFile(filepath.Join("./	client/build", r.URL.Path))
+	data, err := ioutil.ReadFile(file)
 	if err != nil {
 		log.Printf("Err reading file: %s", err.Error())
 		return

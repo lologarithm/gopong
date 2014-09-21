@@ -22,7 +22,8 @@ function ($, React, _h) {
 			window.addEventListener('popstate', function(event) {
 				this.navigateURL ();
 			}.bind(this));
-
+			// TODO: make this a real object.
+			WS.send("{\"\": \"\"}");
 			History.replaceState({}, 'Go Pong!', window.location.pathname);
 		},
 
