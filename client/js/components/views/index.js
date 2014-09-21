@@ -23,7 +23,7 @@ function ($, React, _h) {
 				this.navigateURL ();
 			}.bind(this));
 			// TODO: make this a real object.
-			WS.send("{\"\": \"\"}");
+			WS.send("{\"Type\": \"newPlayer\"}");
 			History.replaceState({}, 'Go Pong!', window.location.pathname);
 		},
 
