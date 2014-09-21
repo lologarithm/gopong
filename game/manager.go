@@ -50,6 +50,7 @@ func (m *Manager) handleMessage(msg Message) {
 			log.Printf("STARTING GAME")
 		}
 		m.Players[id] = &Thing{Id: id, Position: pos}
+		m.Outgoing <- msg
 	case "playerUpdate":
 		log.Printf("Player updated direction!")
 		var pu PlayerUpdate
@@ -58,6 +59,7 @@ func (m *Manager) handleMessage(msg Message) {
 			log.Printf("Failed to parse player update!")
 		}
 		m.Players[pu.Id].Velocity.Y = 1.0 * pu.Direction
+		m.Outgoing <- msg
 	}
 }
 
@@ -68,6 +70,7 @@ func (m *Manager) Tick() {
 		for _, other := range m.Players {
 			dist = math.Pow(float64(other.Position.X-b.Position.X), 2) + math.Pow(float64(other.Position.Y-b.Position.Y), 2)
 			if dist <= math.Pow(float64(other.Size+b.Size), 2) {
+				b.Velocity.X *= -1
 				log.Printf("COLLISION!")
 				break
 			}
@@ -82,14 +85,14 @@ func (m *Manager) Tick() {
 	}
 	for _, p := range m.Players {
 		p.UpdatePosition()
-		for _, other := range m.Balls {
-			dist = math.Pow(float64(other.Position.X-p.Position.X), 2) + math.Pow(float64(other.Position.Y-p.Position.Y), 2)
-			if dist <= math.Pow(float64(other.Size+p.Size), 2) {
-				log.Printf("COLLISION!")
-				break
-			}
-		}
-
+		//for _, other := range m.Balls {
+		//	dist = math.Pow(float64(other.Position.X-p.Position.X), 2) + math.Pow(float64(other.Position.Y-p.Position.Y), 2)
+		//	if dist <= math.Pow(float64(other.Size+p.Size), 2) {
+		//		other.Velocity.X *= -1
+		//		log.Printf("COLLISION!")
+		//		break
+		//	}
+		//}
 	}
 }
 

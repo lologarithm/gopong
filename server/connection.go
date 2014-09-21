@@ -52,6 +52,7 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request, hub *Hub) {
 	ws, err := upgrader.Upgrade(w, r, nil)
 	log.Printf("got new connection")
 	if err != nil {
+		log.Printf("ERROR: During handle upgrade: %s", err.Error())
 		return
 	}
 	c := &Connection{send: make(chan game.Message, 256), ws: ws, myHub: hub}

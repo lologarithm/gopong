@@ -6,6 +6,8 @@ define([
 
 function ($, React, _h) {
 	var IndexView = React.createClass({
+		WS: new WebSocket("ws://localhost:8080/ws"),
+		
 		ACTIVE_VIEW: {
 			ROOT: '/'
 		},
