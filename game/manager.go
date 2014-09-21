@@ -1,7 +1,6 @@
 package game
 
 import (
-	"encoding/json"
 	"log"
 	"math"
 	"strconv"
@@ -16,8 +15,8 @@ const (
 
 type Manager struct {
 	Incoming chan map[string]string
-	Players  map[uint32]*Player
-	Balls    []*Ball
+	Players  map[int]*Thing // For now its just left and right players
+	Balls    []*Thing
 }
 
 func (m *Manager) Run() {
@@ -41,17 +40,22 @@ func (m *Manager) handleMessage(msg map[string]string) {
 	case "newPlayer":
 		//id, err := strconv.ParseInt(msg["id"], 10, 32)
 		id := len(m.Players)
-		m.Players[uint32(id)] = &Player{Id: uint32(id), Position: Vector2{X: 0, Y: 0}}
+		pos := Vector2{X: -100, Y: 0}
+		if id == 1 {
+			pos = Vector2{X: 100, Y: 0}
+		}
+		m.Players[id] = &Thing{Id: id, Position: pos}
 	case "playerUpdate":
-		id, err := strconv.ParseInt(msg["id"], 10, 32)
+		id, err := strconv.Atoi(msg["id"])
 		if err != nil {
 			log.Printf("Failed to parse player id for update!")
 		}
 
-		err = json.Unmarshal([]byte(msg["pos"]), &m.Players[uint32(id)].Position)
+		moveDirection, err := strconv.ParseFloat(msg["moveDir"], 64)
 		if err != nil {
 			log.Printf("Failed to parse player position for update!")
 		}
+		m.Players[id].Velocity.Y = 25 * moveDirection
 	}
 }
 
@@ -72,7 +76,7 @@ func (m *Manager) Tick() {
 
 func NewManager() *Manager {
 	return &Manager{
-		Players: make(map[uint32]*Player, 0),
-		Balls:   []*Ball{&Ball{Id: 0, Size: 10}},
+		Players: make(map[int]*Thing, 0),
+		Balls:   []*Thing{&Thing{Id: 0, Size: 10}},
 	}
 }
